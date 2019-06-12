@@ -23,7 +23,7 @@ Fort_Mod = $(Fort) -c $(All_flags) $(W_flags) $(Opt_flags)
 Fort_Lin = $(Fort) -g $(Opt_flags)
 
 #List of objects to compile
-File_list = util.o solve_qp.o main.o
+File_list = util.o solve_qp.o quad_prog.o main.o
 
 #------------------------
 # Build
@@ -46,7 +46,8 @@ all: $(File_list)
 # solve_qp_compact.o: $(src)/solve_qp_compact.f dpofa_mod.mod dpori_dposl.mod
 util.o: $(src)/util.f
 solve_qp.o: $(src)/solve_qp.f util.mod
-main.o: $(src)/main.f08 solve_qp.mod
+quad_prog.o: $(src)/quad_prog.f08 solve_qp.mod
+main.o: $(src)/main.f08 quad_prog.mod
 
 
 #------------------------
