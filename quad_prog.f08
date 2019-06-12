@@ -121,7 +121,7 @@ subroutine H_check(H)
     double precision, dimension(:,:), intent(inout):: H
     !Local:
     integer:: i
-    double precision, parameter:: eps = 1.d-40
+    double precision, parameter:: eps = 1.d-10
     
     
     do i=1,minval(shape(H))
