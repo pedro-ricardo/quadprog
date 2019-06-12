@@ -36,7 +36,7 @@ all: $(File_list)
 	@true
 
 %.o: $(src)/%.f
-	$(Fort_Mod) $<
+	$(Fort_Mod) -std=legacy $<
 
 %.o: $(src)/%.f08
 	$(Fort_Mod) $< 

@@ -10,24 +10,32 @@ public:: quadprog
 contains
 
 ! #############################################################################
-subroutine quadprog(H,f,Aeq,beq,lb,ub, x,res,err)
+! Import 'Matlab like' structures and convert to use F77 quadprog algorithm
+! Error codes are:
+! 0 - Success
+! 1 - Minimization problem has no solution
+! 2 - Problem in matrix [H] decomposition
+! 3 - Minimization problem solved but violates equality contrains
+! 4 - Minimization problem solved but violates inequality contrains
+
+subroutine quadprog(H,f,Aeq,beq,lb,ub, x,tol,res,err)
     implicit none
     !Entrada
     double precision, dimension(:), intent(in):: f, beq, lb, ub
     double precision, dimension(:,:), intent(in):: H, Aeq
+    double precision, intent(in):: tol
     !Saida
     double precision, dimension(:), intent(out):: x
     double precision, intent(out):: res
     integer, intent(out):: err
     !Local:
     double precision, allocatable, dimension(:):: f_loc, beq_loc
-    double precision, allocatable, dimension(:,:):: H_loc, Aeq_loc, x_loc, res_loc, fm_loc
+    double precision, allocatable, dimension(:,:):: H_loc, Aeq_loc
     integer:: n, q, qeq, i ,j
     ! Solver specific
     integer:: nact, iter(2,1)=0, iw, r
     integer, allocatable, dimension(:):: iact
     double precision, allocatable, dimension(:):: lagr, work
-    double precision:: crval
     
     
     ! --------------
@@ -47,9 +55,6 @@ subroutine quadprog(H,f,Aeq,beq,lb,ub, x,res,err)
     allocate(H_loc(n,n))
     allocate(beq_loc(q))
     allocate(Aeq_loc(n,q))
-    allocate(x_loc(n,1))
-    allocate(fm_loc(n,1))
-    allocate(res_loc(1,1))
     ! Unused variables passed to F77
     allocate(lagr(q))
     allocate(iact(q))
@@ -93,21 +98,15 @@ subroutine quadprog(H,f,Aeq,beq,lb,ub, x,res,err)
     ! --------------
     ! Initialize solutiol {x} values
     x = 1.d40
-    call qpgen2(H_loc, f_loc, n, n, x, lagr, crval, Aeq_loc, beq_loc, n, q, qeq, iact, nact, iter, work, err)
-    
-    ! --------------
-    ! Resirue Calculation
-    ! --------------
-    x_loc(:,1) = x
-    fm_loc(:,1) = f
-    res_loc = (0.5d0)*matmul( transpose(x_loc), matmul(H, x_loc)  ) + matmul( transpose(fm_loc), x_loc)
-    res = res_loc(1,1)
-        
+    call qpgen2(H_loc, f_loc, n, n, x, lagr, res, Aeq_loc, beq_loc, n, q, qeq, iact, nact, iter, work, err)
+
+    call constrain_check(x,Aeq_loc,beq_loc,qeq,tol,err)
+
     ! --------------
     ! Free local memory
     ! --------------
-    deallocate(H_loc, Aeq_loc, x_loc, fm_loc)
-    deallocate(f_loc, beq_loc, res_loc)
+    deallocate(H_loc, Aeq_loc)
+    deallocate(f_loc, beq_loc)
     deallocate(work, lagr, iact)
     
 end subroutine quadprog
@@ -122,7 +121,7 @@ subroutine H_check(H)
     double precision, dimension(:,:), intent(inout):: H
     !Local:
     integer:: i
-    double precision, parameter:: eps = 1.d-10
+    double precision, parameter:: eps = 1.d-40
     
     
     do i=1,minval(shape(H))
@@ -134,6 +133,58 @@ subroutine H_check(H)
     end do
     
 end subroutine H_check
+! #############################################################################
+
+! #############################################################################
+subroutine constrain_check(x,Aeql,beql,qeq,tol,errcode)
+    implicit none
+    !Entrada:
+    integer, intent(in):: qeq
+    double precision, dimension(:), intent(in):: x, beql
+    double precision, dimension(:,:), intent(in):: Aeql
+    double precision, intent(in):: tol
+    integer, intent(inout):: errcode
+    !Local:
+    integer:: n, q
+    double precision, allocatable, dimension(:,:):: x_loc, Res_eq, Res_ineq
+    
+    ! Get sizes
+    n = size(x)
+    q = 2*n + qeq
+    
+    if (errcode==0) then
+        !Allocate temporary variable
+        allocate(x_loc(n,1))
+        allocate(Res_eq(qeq,1), Res_ineq(2*n,1))
+        !Copy Solution
+        x_loc(:,1)=x
+        
+        !Calculate Residue in equalities [Aeq]^T * {x}  - {beq}
+        Res_eq  = matmul( transpose(Aeql(:,1:qeq)), x_loc )
+        Res_eq(:,1) = Res_eq(:,1) - beql(1:qeq)
+        !Error check
+        if (.not. all(Res_eq(:,1)>=-tol) .and. all(Res_eq(:,1)<=tol) ) then
+            errcode=4
+            deallocate(x_loc, Res_eq, Res_ineq)
+            return
+        end if
+        
+        !Calculate Residue in equalities [Aineq]^T * {x}  - {bineq}
+        Res_ineq = matmul( transpose(Aeql(:,qeq+1:)), x_loc )
+        Res_ineq(:,1) = Res_ineq(:,1) - beql(qeq+1:)
+        !Error check
+        if (.not. all(Res_ineq(:,1)>=-tol) ) then
+            errcode=5
+            deallocate(x_loc, Res_eq, Res_ineq)
+            return
+        end if
+        
+        !Free memory of temporary variables
+        deallocate(x_loc, Res_eq, Res_ineq)
+        
+    end if !errcode
+    
+end subroutine constrain_check
 ! #############################################################################
 
 end module quad_prog
