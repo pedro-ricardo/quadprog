@@ -116,6 +116,7 @@ program Ftest
     write(*,*)'Calculation Done'
     write(*,*)'Error code:', err
     write(*,*)'Residue   :', res
+    write(*,*)'Residue_C :', qp_res_correction(n,f,res)
     write(*,*)
     write(*,*)'Solution:'
     write(*,*)'TG1 entry     ', x(1)*3.6d3/1.d3

@@ -3,6 +3,8 @@
 extern "C" {
     void quadprog (const int *n, const int *qeq, const double *vH ,const double *f, const double *vAeq, const double *beq, 
     const double *lb, const double *ub, double *x, const double *tol, double *res, int *err ) ;
+    
+    double qp_res_correction(const int *n, const double *f, double *res);
 }
 //g++ control.cpp quad_prog.o solve_qp.o util.o -lgfortran -lblas
 main()
@@ -27,6 +29,7 @@ main()
     double tol = 5;
     double res = 0;
     int err = 0;
+    double res_c = -1;
     
     quadprog(&n, &qeq, H, f, Aeq, beq, lb, ub, x, &tol, &res, &err);
     
@@ -35,5 +38,10 @@ main()
     {
         printf("%f\n", x[i]);
     }
+    
+    res_c = qp_res_correction(&n,f,&res);
+    
+    printf("%e\n",res_c);
+    
     return 0;
 }
