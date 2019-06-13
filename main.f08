@@ -104,7 +104,7 @@ program main
     ! -------------------
     ! Resolve
     ! -------------------
-    call quadprog(H,f,Aeq,beq,lb,ub, x,contrain_tol,res,err)
+    call quadprog(n,qeq,H,f,Aeq,beq,lb,ub, x,contrain_tol,res,err)
 
     ! -------------------
     ! Show results

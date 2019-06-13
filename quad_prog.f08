@@ -1,5 +1,6 @@
 module quad_prog
     use solve_qp
+    use iso_c_binding
     
 implicit none
 
@@ -18,35 +19,30 @@ contains
 ! 3 - Minimization problem solved but violates equality contrains
 ! 4 - Minimization problem solved but violates inequality contrains
 
-subroutine quadprog(H,f,Aeq,beq,lb,ub, x,tol,res,err)
+subroutine quadprog(n,qeq,H,f,Aeq,beq,lb,ub, x,tol,res,err) bind(c)
     implicit none
     !Entrada
-    double precision, dimension(:), intent(in):: f, beq, lb, ub
-    double precision, dimension(:,:), intent(in):: H, Aeq
-    double precision, intent(in):: tol
+    real(c_double), dimension(n), intent(in):: f, lb, ub
+    real(c_double), dimension(qeq), intent(in):: beq
+    real(c_double), dimension(n,n), intent(in):: H
+    real(c_double), dimension(qeq,n), intent(in):: Aeq
+    real(c_double), intent(in):: tol
+    integer(c_int), intent(in):: n, qeq
     !Saida
-    double precision, dimension(:), intent(out):: x
-    double precision, intent(out):: res
-    integer, intent(out):: err
+    real(c_double), dimension(n), intent(out):: x
+    real(c_double), intent(out):: res
+    integer(c_int), intent(out):: err
     !Local:
     double precision, allocatable, dimension(:):: f_loc, beq_loc
     double precision, allocatable, dimension(:,:):: H_loc, Aeq_loc
-    integer:: n, q, qeq, i ,j
+    integer:: q, i ,j
     ! Solver specific
     integer:: nact, iter(2,1)=0, iw, r
     integer, allocatable, dimension(:):: iact
     double precision, allocatable, dimension(:):: lagr, work
     
-    
-    ! --------------
-    ! Get sizes
-    ! --------------
-    ! Number of variables
-    n = size(x) 
     ! Number of total constrains
-    q = size(beq)+ size(lb)+ size(ub)
-    ! Number of equality contrains
-    qeq = size(beq)
+    q = qeq+2*n
     
     ! --------------
     ! Allocate local variables
