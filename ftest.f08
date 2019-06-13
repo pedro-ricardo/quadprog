@@ -1,4 +1,4 @@
-program main
+program Ftest
     use quad_prog
     
     implicit none
@@ -7,9 +7,9 @@ program main
     parameter( n = 8 )
     parameter( qeq = 5 )
     ! Matrix and Vector declarations
-    double precision, dimension(n,n):: H
+    double precision, dimension(n*n):: H
     double precision, dimension(n):: f, tg1_min, tg1_max, lb, ub
-    double precision, dimension(qeq,n):: Aeq
+    double precision, dimension(qeq*n):: Aeq
     double precision, dimension(qeq)::beq
     ! Constant inputs
     double precision, parameter:: rho_water = 997.d0
@@ -59,10 +59,14 @@ program main
     ! -------------------
 
     ! Fill Matrix [H]
-    H = 0.d0
-    H(1,1)=2.d0
-    H(6,6)=2.d0
-    H(7,7)=2.d0
+    H = [2, 0, 0, 0, 0, 0, 0, 0,&
+         0, 0, 0, 0, 0, 0, 0, 0,&
+         0, 0, 0, 0, 0, 0, 0, 0,&
+         0, 0, 0, 0, 0, 0, 0, 0,&
+         0, 0, 0, 0, 0, 0, 0, 0,&
+         0, 0, 0, 0, 0, 2, 0, 0,&
+         0, 0, 0, 0, 0, 0, 2, 0,&
+         0, 0, 0, 0, 0, 0, 0, 0 ]
     
     ! Fill {f} vector
     f = 0.d0
@@ -71,13 +75,12 @@ program main
     f(7) = -2.d0*boiler_steam_flow_rate*1.d3/3.6d3
     
     ! Fill [Aeq]
-    Aeq = 0.d0
-    Aeq (1,1:3) = [1.d0  , -1.d0  , -1.d0  ]
-    Aeq (2,1:3) = [tg1_h1, -tg1_h2, -tg1_h3]
-    Aeq (3,4:6) = [1.d0  , -1.d0  , -1.d0  ]
-    Aeq (4,4:6) = [tg2_h1, -tg2_h2, -tg2_h3]
-    Aeq (5,[7,1,4,8]) = [1.d0, -1.d0, -1.d0, -1.d0 ]
-    
+    Aeq = [1d0, -1d0, -1d0, 0d0, 0d0, 0d0, 0d0, 0d0,&
+           tg1_h1, -tg1_h2, -tg1_h3, 0d0, 0d0, 0d0, 0d0, 0d0,&
+           0d0, 0d0, 0d0, 1d0, -1d0, -1d0, 0d0, 0d0,&
+           0d0, 0d0, 0d0, tg2_h1, -tg2_h2, -tg2_h3, 0d0, 0d0,&
+           -1d0, 0d0, 0d0, -1d0, 0d0, 0d0, 1d0, -1d0 ]
+           
     ! Fill {beq}
     beq = 0.d0
     beq(2) = 1.d3*tg1_power/tg1_efficiency
@@ -90,13 +93,13 @@ program main
     
     write(*,*)'H'
     do i=1,n
-    write(*,'(8(1x,es10.3))')H(i,:)
+    write(*,'(8(1x,es10.3))')H(1+(i-1)*n:(i)*n)
     end do
     write(*,*)'f'
     write(*,'(8(1x,es10.3))')f
     write(*,*)'Aeq'
     do i=1,qeq
-        write(*,'(8(1x,es10.3))')Aeq(i,:)
+        write(*,'(8(1x,es10.3))')Aeq(1+(i-1)*n:(i)*n)
     end do
     write(*,*)'beq'
     write(*,'(8(1x,es10.3))')beq
@@ -124,4 +127,4 @@ program main
     write(*,*)'Total         ', x(7)*3.6d3/1.d3
     write(*,*)'Valvula       ', x(8)*3.6d3/1.d3
 
-end program main
+end program Ftest

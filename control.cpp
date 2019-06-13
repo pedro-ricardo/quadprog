@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 extern "C" {
-    void quadprog (const int *n, const int *qeq, const double *H ,const double *f, const double *Aeq, const double *beq, 
+    void quadprog (const int *n, const int *qeq, const double *vH ,const double *f, const double *vAeq, const double *beq, 
     const double *lb, const double *ub, double *x, const double *tol, double *res, int *err ) ;
 }
 //g++ control.cpp quad_prog.o solve_qp.o util.o -lgfortran -lblas
@@ -16,9 +16,8 @@ main()
     };
     double f[] = {-68.72, 0, 0};
     double Aeq[] = {
-        1, 3.4144e3,
-        -1, -3.0951e3,
-        -1, -2.7316e3
+        1       , -1       , -1,
+        3.4144e3, -3.0951e3, -2.7316e3
     };
     double beq[] = {0, 21800  
     };
