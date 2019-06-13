@@ -19,13 +19,13 @@ contains
 ! 3 - Minimization problem solved but violates equality contrains
 ! 4 - Minimization problem solved but violates inequality contrains
 
-subroutine quadprog(n,qeq,H,f,Aeq,beq,lb,ub, x,tol,res,err) bind(c)
+subroutine quadprog(n,qeq,vH,f,vAeq,beq,lb,ub, x,tol,res,err) bind(c)
     implicit none
     !Entrada
     real(c_double), dimension(n), intent(in):: f, lb, ub
     real(c_double), dimension(qeq), intent(in):: beq
-    real(c_double), dimension(n,n), intent(in):: H
-    real(c_double), dimension(qeq,n), intent(in):: Aeq
+    real(c_double), dimension(n*n), intent(in):: vH
+    real(c_double), dimension(qeq*n), intent(in):: vAeq
     real(c_double), intent(in):: tol
     integer(c_int), intent(in):: n, qeq
     !Saida
@@ -33,6 +33,8 @@ subroutine quadprog(n,qeq,H,f,Aeq,beq,lb,ub, x,tol,res,err) bind(c)
     real(c_double), intent(out):: res
     integer(c_int), intent(out):: err
     !Local:
+    double precision, dimension(n,n):: H
+    double precision, dimension(qeq,n):: Aeq
     double precision, allocatable, dimension(:):: f_loc, beq_loc
     double precision, allocatable, dimension(:,:):: H_loc, Aeq_loc
     integer:: q, i ,j
@@ -40,6 +42,22 @@ subroutine quadprog(n,qeq,H,f,Aeq,beq,lb,ub, x,tol,res,err) bind(c)
     integer:: nact, iter(2,1)=0, iw, r
     integer, allocatable, dimension(:):: iact
     double precision, allocatable, dimension(:):: lagr, work
+    
+    ! --------------
+    !Transform row_based memory from C to Fortran
+    ! --------------
+    !{vH} to [H]
+    H = 0.d0
+    do i=1,n
+        j = 1+n*(i-1)
+        H(i,:) = vH(j:j+n-1)
+    end do
+    !{vAeq} to [Aeq]
+    Aeq = 0.d0
+    do i=1,qeq
+        j = 1+n*(i-1)
+        Aeq(i,:) = vAeq(j:j+n-1)
+    end do
     
     ! Number of total constrains
     q = qeq+2*n
