@@ -6,7 +6,7 @@ implicit none
 
 private
 
-public:: quadprog
+public:: quadprog, qp_res_correction
 
 contains
 
@@ -178,7 +178,7 @@ subroutine constrain_check(x,Aeql,beql,qeq,tol,errcode)
         Res_eq(:,1) = Res_eq(:,1) - beql(1:qeq)
         !Error check
         if (.not. all(Res_eq(:,1)>=-tol) .and. all(Res_eq(:,1)<=tol) ) then
-            errcode=4
+            errcode=3
             deallocate(x_loc, Res_eq, Res_ineq)
             return
         end if
@@ -188,7 +188,7 @@ subroutine constrain_check(x,Aeql,beql,qeq,tol,errcode)
         Res_ineq(:,1) = Res_ineq(:,1) - beql(qeq+1:)
         !Error check
         if (.not. all(Res_ineq(:,1)>=-tol) ) then
-            errcode=5
+            errcode=4
             deallocate(x_loc, Res_eq, Res_ineq)
             return
         end if
@@ -199,6 +199,28 @@ subroutine constrain_check(x,Aeql,beql,qeq,tol,errcode)
     end if !errcode
     
 end subroutine constrain_check
+! #############################################################################
+
+! #############################################################################
+function qp_res_correction(n,f,res) result(res_corr) bind(c)
+    implicit none
+    !Entrada
+    integer(c_int), intent(in):: n
+    real(c_double), intent(in):: res
+    real(c_double), dimension(n), intent(in):: f
+    !Saida
+    real(c_double):: res_corr
+    !Local
+    double precision:: corr(1,1), f_loc(n,1)
+    
+    !Copy f variable to column matrix
+    f_loc(:,1) = f
+    !Calculate residue
+    corr = res*(2.d0**2) + matmul(transpose(f_loc), f_loc)
+    !Export to variable
+    res_corr = corr(1,1)
+    
+end function
 ! #############################################################################
 
 end module quad_prog
