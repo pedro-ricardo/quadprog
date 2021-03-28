@@ -94,6 +94,7 @@ c
       logical t1inf, t2min
       r = min(n,q)
       l = 2*n + (r*(r+5))/2 + 2*q + 1
+      ierr = 0
 c
 c     code gleaned from Powell's ZQPCVX routine to determine a small
 c     number  that can be assumed to be an upper bound on the relative
@@ -245,7 +246,7 @@ c            nvl = i
 c            goto 72
 c         endif
  71   continue
- 72   if (nvl .EQ. 0) then
+      if (nvl .EQ. 0) then
          do 73 i=1,nact
             lagr(iact(i))=work(iwuv+i)
  73      continue
@@ -293,7 +294,7 @@ c
          work(iwrv+i) = sum
          if (iact(i) .LE. meq) goto 95
          if (sum .LE. 0.d0) goto 95
- 7       t1inf = .FALSE.
+         t1inf = .FALSE.
          it1 = i
  95   continue
 c
