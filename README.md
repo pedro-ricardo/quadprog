@@ -1,8 +1,9 @@
 # QuadProg Solver
-Simple Quadratic programming solver. The solver credit goes to a `R` package.
+Simple Quadratic programming solver. Many thanks to [Felipeasg](https://github.com/Felipeasg) that found and started this interface.
+
+The solver credit goes to a Cran `R` [package](https://github.com/cran/quadprog).
 
 This repo simply translate that solver to use a **Matlab** like interface.
-
 * Both C and Fortran usage examples
 * Free from memmory leaks
 * Has a Blas dependency
