@@ -50,10 +50,10 @@ all: $(F_list) $(C_list)
 %.o: $(src)/%.f
 	$(F_Mod) -std=legacy -Wno-extra $<
 
-%.o: $(src)/%.f08
+%.o: $(src)/%.f90
 	$(F_Mod) -std=f2008 $<
 
-%.o: $(example)/%.f08
+%.o: $(example)/%.f90
 	$(F_Mod) -std=f2008 $<
 
 %.o: $(example)/%.c
@@ -62,8 +62,8 @@ all: $(F_list) $(C_list)
 # Objects list and dependencies
 util.o: $(src)/util.f
 solve_qp.o: $(src)/solve_qp.f util.mod
-quad_prog.o: $(src)/quad_prog.f08 solve_qp.mod
-ftest.o: $(example)/ftest.f08 quad_prog.mod
+quad_prog.o: $(src)/quad_prog.f90 solve_qp.mod
+ftest.o: $(example)/ftest.f90 quad_prog.mod
 ctest.o: $(example)/ctest.c util.o solve_qp.o quad_prog.o
 
 #------------------------
