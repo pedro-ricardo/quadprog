@@ -5,12 +5,14 @@ This repo simply translate that solver to use a **Matlab** like interface.
 
 * Both C and Fortran usage examples
 * Free from memmory leaks
+* Has a Blas dependency
 
 ## Tested With:
 | Library  | Version  |
 | -------- | -------- |
 | GCC      | 10.2.1   |
 | Valgrind | 3.15.0   |
+| Blas     | 3.7.1    |
 
 ## Usage
 ```
